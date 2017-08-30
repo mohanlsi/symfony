@@ -72,4 +72,16 @@ class MoneyToLocalizedStringTransformerTest extends TestCase
 
         $this->assertNull($transformer->reverseTransform(''));
     }
+
+    public function testFloatToIntConversionMismatchOnReverseTransform()
+    {
+        if (!function_exists('bcmul')) {
+            $this->markTestSkipped('Test will only work when bcmath-extension is enabled');
+        }
+
+        $transformer = new MoneyToLocalizedStringTransformer(null, null, null, 100);
+
+        $this->assertEquals(3655, $transformer->reverseTransform('36.55'));
+        $this->assertSame(3655, (int) $transformer->reverseTransform('36.55'));
+    }
 }

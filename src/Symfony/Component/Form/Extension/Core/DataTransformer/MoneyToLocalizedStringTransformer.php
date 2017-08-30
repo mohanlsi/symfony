@@ -23,6 +23,8 @@ class MoneyToLocalizedStringTransformer extends NumberToLocalizedStringTransform
 {
     private $divisor;
 
+    private $scale;
+
     public function __construct($scale = 2, $grouping = true, $roundingMode = self::ROUND_HALF_UP, $divisor = 1)
     {
         if (null === $grouping) {
@@ -40,6 +42,7 @@ class MoneyToLocalizedStringTransformer extends NumberToLocalizedStringTransform
         }
 
         $this->divisor = $divisor;
+        $this->scale = $scale;
     }
 
     /**
@@ -59,7 +62,11 @@ class MoneyToLocalizedStringTransformer extends NumberToLocalizedStringTransform
                 throw new TransformationFailedException('Expected a numeric.');
             }
 
-            $value /= $this->divisor;
+            if (function_exists('bcdiv')) {
+                $value = bcdiv($value, $this->divisor, $this->scale);
+            } else {
+                $value /= $this->divisor;
+            }
         }
 
         return parent::transform($value);
@@ -80,7 +87,11 @@ class MoneyToLocalizedStringTransformer extends NumberToLocalizedStringTransform
         $value = parent::reverseTransform($value);
 
         if (null !== $value) {
-            $value *= $this->divisor;
+            if (function_exists('bcmul')) {
+                $value = bcmul($value, $this->divisor, $this->scale);
+            } else {
+                $value *= $this->divisor;
+            }
         }
 
         return $value;
